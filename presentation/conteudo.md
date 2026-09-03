@@ -10,6 +10,7 @@ date: Setembro de 2026
 - Da ideia ao produto no ar
 - Quem faz o quê
 - Trabalhando em ciclos rápidos
+- Comprar ou construir a própria solução
 - Inteligência artificial no software
 - Caso prático: uma corretora de seguros
 
@@ -109,6 +110,69 @@ a próxima oportunidade.
 - Acelera o tempo entre a ideia e o valor entregue ao cliente
 - Dá visibilidade constante ao negócio sobre o andamento do trabalho
 - Permite mudar de direção rapidamente quando o mercado muda
+
+# Comprar ou construir a própria solução
+
+## Duas formas de resolver o mesmo problema
+
+![](assets/diagrama_comprar_construir.png){width=90%}
+
+::: notes
+Antes de decidir construir algo internamente, toda empresa enfrenta essa
+escolha: pagar por uma solução que já existe no mercado ou investir tempo e
+time próprio para construir algo sob medida. Não existe resposta certa
+única; depende do quanto aquilo diferencia o negócio.
+:::
+
+## Quando compensa comprar uma solução pronta
+
+- O problema já foi resolvido por outras empresas de forma madura e testada
+- A velocidade de implantação importa mais do que a personalização
+- O time interno pode focar energia no que realmente diferencia o negócio
+- O custo inicial é mais previsível e geralmente mais baixo
+
+## Quando compensa construir a própria solução
+
+- A necessidade é muito específica do negócio, e não existe solução pronta parecida
+- Essa capacidade é uma vantagem competitiva que vale a pena proteger
+- Há dependência de integração profunda com outros sistemas internos
+- No longo prazo, construir pode custar menos do que pagar por uso crescente
+
+## O crescimento das assinaturas (SaaS)
+
+- Cada vez mais empresas oferecem software como um serviço por assinatura, em vez de vender uma licença única
+- O cliente paga um valor recorrente, geralmente mensal ou anual, para continuar usando
+- Isso reduz o investimento inicial de quem compra, e cria uma receita previsível para quem vende
+- O sucesso desse modelo depende de uma coisa acima de tudo: o cliente continuar renovando
+
+## O coração do modelo: a renovação
+
+![](assets/diagrama_ciclo_assinatura.png){width=88%}
+
+::: notes
+Diferente de uma venda única, no modelo de assinatura a venda nunca termina
+de verdade. A cada ciclo, o cliente decide se continua ou não, e é essa
+decisão repetida que sustenta o negócio.
+:::
+
+## Por que o fluxo de caixa muda tanto
+
+![](assets/diagrama_fluxo_caixa_saas.png){width=92%}
+
+::: notes
+Uma venda tradicional traz um caixa grande de uma vez só, mas que não se
+repete. Uma assinatura traz valores menores no começo, porém, se a
+renovação for saudável, a receita se acumula e ultrapassa a venda única com
+o tempo. Por isso empresas de assinatura acompanham de perto a taxa de
+renovação: é o que garante caixa no futuro.
+:::
+
+## O que isso significa para quem decide
+
+- Comprar ou construir depende do quanto aquela solução diferencia o negócio, não só do preço
+- Um contrato de assinatura troca um gasto grande e único por um compromisso contínuo
+- A saúde financeira de um negócio de assinatura se mede pela renovação, não só pela venda inicial
+- Cancelamentos custam caro: cada cliente perdido reduz a receita futura já esperada
 
 # Inteligência artificial no software
 

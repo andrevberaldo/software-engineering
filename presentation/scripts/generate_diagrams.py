@@ -277,9 +277,188 @@ def diagram_rag_vs_graphrag():
     save(fig, "diagrama_rag_graphrag.png")
 
 
+# ---------------------------------------------------------------------------
+# 5. Comprar uma solução pronta vs. construir a própria
+# ---------------------------------------------------------------------------
+def diagram_comprar_construir():
+    w, h = 12.0, 5.0
+    fig, ax = new_fig(w, h)
+
+    ax.plot([w / 2, w / 2], [0.3, h - 0.3], color=ICE, linewidth=2)
+
+    # --- Left: comprar (gift-box icon) ---
+    cx1 = w / 4
+    box_cx, box_cy, bs = cx1, 1.25, 1.7
+    ax.add_patch(
+        FancyBboxPatch(
+            (box_cx - bs / 2, box_cy - bs / 2 + 0.15), bs, bs * 0.75,
+            boxstyle="round,pad=0.02,rounding_size=0.08",
+            facecolor=ICE_SOFT, edgecolor=NAVY, linewidth=1.6, zorder=2,
+        )
+    )
+    ax.add_patch(
+        FancyBboxPatch(
+            (box_cx - bs / 2, box_cy - bs / 2 - 0.18), bs, 0.35,
+            boxstyle="round,pad=0.02,rounding_size=0.06",
+            facecolor=WHITE, edgecolor=NAVY, linewidth=1.6, zorder=3,
+        )
+    )
+    ax.plot([box_cx, box_cx], [box_cy - bs / 2 - 0.18, box_cy + bs / 2 - 0.1],
+             color=AMBER, linewidth=5, zorder=4, solid_capstyle="round")
+    ax.add_patch(Circle((box_cx - 0.18, box_cy - bs / 2 - 0.3), 0.14,
+                         facecolor=AMBER, edgecolor="none", zorder=4))
+    ax.add_patch(Circle((box_cx + 0.18, box_cy - bs / 2 - 0.3), 0.14,
+                         facecolor=AMBER, edgecolor="none", zorder=4))
+
+    ax.text(cx1, 2.75, "Comprar uma solução pronta", ha="center", fontsize=15.5,
+            fontweight="bold", color=NAVY)
+    ax.text(cx1, 3.65,
+            "Uma empresa especializada já\nconstruiu, mantém e melhora o\nproduto. Você paga para usar.",
+            ha="center", va="top", fontsize=11.5, color=GRAY, linespacing=1.6)
+
+    # --- Right: construir (building blocks icon) ---
+    cx2 = 3 * w / 4
+    block_specs = [(-0.55, 0.35, NAVY), (0.15, 0.35, ICE), (-0.2, -0.15, NAVY_SOFT)]
+    for dx, dy, color in block_specs:
+        ax.add_patch(
+            FancyBboxPatch(
+                (cx2 + dx - 0.42, 1.25 + dy - 0.35), 0.84, 0.7,
+                boxstyle="round,pad=0.02,rounding_size=0.09",
+                facecolor=color, edgecolor=WHITE, linewidth=2, zorder=3 + dy,
+            )
+        )
+
+    ax.text(cx2, 2.75, "Construir a própria solução", ha="center", fontsize=15.5,
+            fontweight="bold", color=NAVY)
+    ax.text(cx2, 3.65,
+            "O time da empresa desenha e\nmantém a solução, sob medida\npara a sua necessidade.",
+            ha="center", va="top", fontsize=11.5, color=GRAY, linespacing=1.6)
+
+    save(fig, "diagrama_comprar_construir.png")
+
+
+# ---------------------------------------------------------------------------
+# 6. O ciclo de renovação de uma assinatura (SaaS)
+# ---------------------------------------------------------------------------
+def diagram_ciclo_assinatura():
+    w, h = 12.0, 5.4
+    fig, ax = new_fig(w, h)
+    # Data units in this axes are ~0.78x a real inch (default matplotlib
+    # subplot margins), while fontsize is in true points/inches. Labels set
+    # inside the circles below were sized against that mismatch and spilled
+    # past the circle edge, going invisible where white text crossed onto
+    # the white page background. Filling the full figure with the axes
+    # makes 1 data unit == 1 real inch, matching the radius/fontsize math.
+    ax.set_position([0, 0, 1, 1])
+
+    cx, cy = w / 2, 2.55
+    radius = 1.55
+
+    nodes = [
+        ("Usa o produto\ne recebe valor", (cx, cy - radius)),
+        ("Chega a data\nde renovação", (cx + radius * 1.05, cy + radius * 0.35)),
+        ("Renova", (cx - radius * 1.05, cy + radius * 0.35)),
+    ]
+    r = 0.82
+
+    for label, (x, y) in nodes:
+        ax.add_patch(Circle((x, y), r, facecolor=NAVY, edgecolor="none", zorder=3))
+        ax.text(x, y, label, ha="center", va="center", fontsize=11, fontweight="bold",
+                color=WHITE, linespacing=1.3, zorder=4)
+
+    (x1, y1), (x2, y2), (x3, y3) = [n[1] for n in nodes]
+
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), connectionstyle="arc3,rad=-0.25",
+                                  arrowstyle="-|>", mutation_scale=18, linewidth=2.4,
+                                  color=AMBER, zorder=2))
+    ax.add_patch(FancyArrowPatch((x2, y2), (x3, y3), connectionstyle="arc3,rad=-0.25",
+                                  arrowstyle="-|>", mutation_scale=18, linewidth=2.4,
+                                  color=AMBER, zorder=2))
+    ax.add_patch(FancyArrowPatch((x3, y3), (x1, y1), connectionstyle="arc3,rad=-0.25",
+                                  arrowstyle="-|>", mutation_scale=18, linewidth=2.4,
+                                  color=AMBER, zorder=2))
+
+    entry_x, entry_y = cx, cy - radius - 1.35
+    ax.text(entry_x, entry_y, "Cliente\nassina", ha="center", va="center", fontsize=11.5,
+            fontweight="bold", color=NAVY, linespacing=1.3)
+    ax.add_patch(FancyArrowPatch((entry_x, entry_y - 0.35 + 0.55), (x1, y1 - r - 0.05),
+                                  arrowstyle="-|>", mutation_scale=16, linewidth=2,
+                                  color=NAVY_SOFT, zorder=2))
+
+    cancel_x, cancel_y = x2 + 1.9, y2 + 0.85
+    ax.add_patch(
+        FancyBboxPatch((cancel_x - 1.1, cancel_y - 0.35), 2.2, 0.7,
+                        boxstyle="round,pad=0.02,rounding_size=0.1",
+                        facecolor=ICE_SOFT, edgecolor=GRAY, linewidth=1.4, zorder=2)
+    )
+    ax.text(cancel_x, cancel_y, "Cancela\n(minoria dos casos)", ha="center", va="center",
+            fontsize=10.5, color=GRAY, linespacing=1.3, zorder=3)
+    ax.add_patch(FancyArrowPatch((x2 + r * 0.7, y2 + r * 0.5), (cancel_x - 1.0, cancel_y - 0.1),
+                                  arrowstyle="-|>", mutation_scale=13, linewidth=1.6,
+                                  color=GRAY, linestyle=(0, (4, 3)), zorder=1))
+
+    ax.text(cx, h - 0.25,
+            "Cada renovação soma à receita recorrente do negócio",
+            ha="center", va="bottom", fontsize=12.5, color=NAVY_SOFT, style="italic")
+
+    save(fig, "diagrama_ciclo_assinatura.png")
+
+
+# ---------------------------------------------------------------------------
+# 7. Fluxo de caixa: venda única vs. assinatura recorrente
+# ---------------------------------------------------------------------------
+def diagram_fluxo_caixa_saas():
+    w, h = 12.0, 6.2
+    fig, ax = plt.subplots(figsize=(w, h), dpi=200)
+
+    anos = [0, 1, 2, 3, 4, 5]
+    licenca = [400, 400, 400, 400, 400, 400]
+    assinatura = [0, 120, 240, 360, 480, 600]
+
+    ax.plot(anos, licenca, color=NAVY, linewidth=2.5, marker="o", markersize=6,
+            zorder=3, label="licenca")
+    ax.plot(anos, assinatura, color=AMBER, linewidth=2.5, marker="o", markersize=6,
+            zorder=3, label="assinatura")
+
+    # crossover point (linear interpolation between year 3 and year 4)
+    y3, y4 = assinatura[3], assinatura[4]
+    frac = (400 - y3) / (y4 - y3)
+    cross_x = 3 + frac
+    ax.plot([cross_x], [400], marker="o", markersize=10, markerfacecolor=WHITE,
+            markeredgecolor=INK, markeredgewidth=2, zorder=5)
+    ax.annotate("A partir daqui, a assinatura\njá vale mais que a venda única",
+                xy=(cross_x, 400), xytext=(cross_x - 0.15, 560),
+                fontsize=11, color=INK, ha="center", linespacing=1.5,
+                arrowprops=dict(arrowstyle="-", color=INK, linewidth=1.2))
+
+    ax.text(anos[-1] + 0.12, licenca[-1], "Venda única\n(pagamento uma vez)",
+            va="center", ha="left", fontsize=11.5, fontweight="bold", color=NAVY)
+    ax.text(anos[-1] + 0.12, assinatura[-1], "Assinatura\n(cresce a cada renovação)",
+            va="center", ha="left", fontsize=11.5, fontweight="bold", color=AMBER)
+
+    ax.set_xlim(-0.3, 7.3)
+    ax.set_ylim(-40, 680)
+    ax.set_xticks(anos)
+    ax.set_xticklabels([f"Ano {a}" if a > 0 else "Início" for a in anos], fontsize=11,
+                        color=GRAY)
+    ax.set_yticks([])
+    for spine in ["top", "right", "left"]:
+        ax.spines[spine].set_visible(False)
+    ax.spines["bottom"].set_color(ICE)
+    ax.tick_params(axis="x", length=0)
+    ax.set_title("Receita acumulada por cliente, ao longo do tempo",
+                  fontsize=15, fontweight="bold", color=NAVY, loc="left", pad=18)
+
+    fig.tight_layout()
+    save(fig, "diagrama_fluxo_caixa_saas.png")
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     diagram_lifecycle()
     diagram_roles()
     diagram_ai_flow()
     diagram_rag_vs_graphrag()
+    diagram_comprar_construir()
+    diagram_ciclo_assinatura()
+    diagram_fluxo_caixa_saas()

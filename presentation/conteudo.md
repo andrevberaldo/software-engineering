@@ -11,6 +11,7 @@ date: Setembro de 2026
 - Quem faz o quê
 - Trabalhando em ciclos rápidos
 - Comprar ou construir a própria solução
+- Como medir o sucesso de um produto
 - Inteligência artificial no software
 - Caso prático: uma corretora de seguros
 
@@ -173,6 +174,58 @@ renovação: é o que garante caixa no futuro.
 - Um contrato de assinatura troca um gasto grande e único por um compromisso contínuo
 - A saúde financeira de um negócio de assinatura se mede pela renovação, não só pela venda inicial
 - Cancelamentos custam caro: cada cliente perdido reduz a receita futura já esperada
+
+# Como medir o sucesso de um produto
+
+## Por que medir importa
+
+- Lançar um produto ou uma funcionalidade não é o fim da história, é o começo de uma nova etapa
+- Sem números, decisões viram opinião: "eu acho que está indo bem" não é o mesmo que saber
+- Métricas bem escolhidas mostram se o problema do cliente foi realmente resolvido
+- É esse acompanhamento que fecha o ciclo de aprendizado visto no início desta conversa
+
+## Três grupos de métricas para acompanhar
+
+![](assets/diagrama_metricas_sucesso.png){width=95%}
+
+::: notes
+Uso e adoção mostram se o produto está sendo aproveitado de verdade. Receita
+e retenção mostram a saúde financeira do negócio. Satisfação mostra se o
+cliente recomendaria o produto a outra pessoa. Os três juntos dão uma visão
+completa; olhar só para um deles esconde parte do quadro.
+:::
+
+## Licenças ativas: quantidade não é tudo
+
+- Contar licenças ou usuários ativos é o primeiro passo, mas não o único
+- Uma licença comprada e nunca usada é um sinal de alerta, não de sucesso
+- O que importa é a proporção de usuários que voltam a usar o produto com frequência
+- Esse número ajuda a antecipar cancelamentos antes que eles aconteçam
+
+## A porcentagem de renovação: o termômetro do negócio
+
+- Mede quantos clientes decidem continuar, quando chega a hora de renovar
+- Uma renovação alta confirma que o produto entrega valor de forma consistente
+- Uma renovação baixa é um alerta antecipado, mesmo que a venda inicial tenha sido um sucesso
+- É a métrica mais próxima de uma resposta direta à pergunta: "o cliente pagaria por isso de novo?"
+
+## Cuidado com métricas de vaidade
+
+![](assets/diagrama_metricas_vaidade.png){width=92%}
+
+::: notes
+É tentador comemorar números grandes e visíveis, como total de downloads ou
+visitas. Mas esses números podem crescer mesmo que o produto não esteja
+gerando valor real. O time de negócio deve sempre perguntar: essa métrica
+prova que o cliente está satisfeito e vai continuar pagando?
+:::
+
+## Transformando números em decisão
+
+- Escolher poucas métricas, bem definidas, vale mais do que acompanhar dezenas de números soltos
+- Cada métrica deve ter um responsável e um motivo claro para existir
+- Uma métrica só é útil se ela muda alguma decisão quando o número se move
+- Revisar essas métricas com frequência é parte do trabalho, não uma tarefa extra
 
 # Inteligência artificial no software
 

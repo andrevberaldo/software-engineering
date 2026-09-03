@@ -453,6 +453,102 @@ def diagram_fluxo_caixa_saas():
     save(fig, "diagrama_fluxo_caixa_saas.png")
 
 
+# ---------------------------------------------------------------------------
+# 8. Três grupos de métricas de sucesso
+# ---------------------------------------------------------------------------
+def diagram_metricas_sucesso():
+    w, h = 12.0, 5.6
+    fig, ax = new_fig(w, h)
+
+    groups = [
+        ("USO", "Uso e adoção", [
+            "Licenças ou usuários ativos",
+            "Uso real, não só a compra",
+            "Frequência de uso",
+        ]),
+        ("R$", "Receita e retenção", [
+            "% de renovação",
+            "Receita recorrente",
+            "Taxa de cancelamento",
+        ]),
+        ("NPS", "Satisfação do cliente", [
+            "Nota de satisfação (NPS)",
+            "Tempo até o primeiro valor",
+            "Volume de chamados de suporte",
+        ]),
+    ]
+    n = len(groups)
+    margin = 1.7
+    usable = w - 2 * margin
+    xs = [margin + usable * i / (n - 1) for i in range(n)]
+    cy = 1.15
+    r = 0.72
+
+    for (initials, title, items), x in zip(groups, xs):
+        ax.add_patch(Circle((x, cy), r, facecolor=NAVY, edgecolor="none", zorder=2))
+        ax.text(x, cy, initials, ha="center", va="center", fontsize=17,
+                fontweight="bold", color=WHITE, zorder=3)
+        ax.text(x, cy + r + 0.4, title, ha="center", va="center", fontsize=15,
+                fontweight="bold", color=NAVY)
+        item_y = cy + r + 0.85
+        for item in items:
+            ax.add_patch(Circle((x - 1.3, item_y), 0.05, facecolor=AMBER,
+                                 edgecolor="none", zorder=2))
+            ax.text(x - 1.15, item_y, item, ha="left", va="center", fontsize=10.5,
+                    color=GRAY)
+            item_y += 0.5
+
+    save(fig, "diagrama_metricas_sucesso.png")
+
+
+# ---------------------------------------------------------------------------
+# 9. Métricas de vaidade vs. métricas que importam
+# ---------------------------------------------------------------------------
+def diagram_metricas_vaidade():
+    w, h = 12.0, 5.4
+    fig, ax = new_fig(w, h)
+
+    ax.plot([w / 2, w / 2], [0.3, h - 0.3], color=ICE, linewidth=2)
+
+    # --- Left: vanity metrics, ascending bars that look good but are hollow ---
+    cx1 = w / 4
+    bar_heights = [0.5, 0.9, 1.4]
+    bar_w = 0.42
+    base_y = 1.75
+    for i, bh in enumerate(bar_heights):
+        bx = cx1 - 0.75 + i * (bar_w + 0.2)
+        ax.add_patch(
+            FancyBboxPatch((bx, base_y - bh), bar_w, bh,
+                            boxstyle="round,pad=0.01,rounding_size=0.04",
+                            facecolor=ICE, edgecolor=NAVY_SOFT, linewidth=1.3, zorder=2)
+        )
+    ax.plot([cx1 - 0.95, cx1 + 0.95], [base_y + 0.05, base_y + 0.05],
+             color=GRAY, linewidth=1.5, zorder=1)
+
+    ax.text(cx1, 2.85, "Métricas de vaidade", ha="center", fontsize=15.5,
+            fontweight="bold", color=NAVY)
+    ax.text(cx1, 3.7,
+            "Impressionam à primeira vista (downloads,\nvisitas, seguidores), mas não dizem se o\ncliente está satisfeito ou vai continuar pagando.",
+            ha="center", va="top", fontsize=11, color=GRAY, linespacing=1.6)
+
+    # --- Right: metrics that matter, a bullseye/target ---
+    cx2 = 3 * w / 4
+    target_cy = 1.15
+    for rr, color in [(0.75, ICE), (0.5, NAVY_SOFT), (0.25, AMBER)]:
+        ax.add_patch(Circle((cx2, target_cy), rr, facecolor=color, edgecolor="none",
+                             zorder=2))
+    ax.add_patch(Circle((cx2, target_cy), 0.08, facecolor=NAVY, edgecolor="none",
+                         zorder=3))
+
+    ax.text(cx2, 2.85, "Métricas que importam", ha="center", fontsize=15.5,
+            fontweight="bold", color=NAVY)
+    ax.text(cx2, 3.7,
+            "Mostram se o produto resolve o problema de\nverdade: % de renovação, uso recorrente e\nreceita por cliente.",
+            ha="center", va="top", fontsize=11, color=GRAY, linespacing=1.6)
+
+    save(fig, "diagrama_metricas_vaidade.png")
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     diagram_lifecycle()
@@ -462,3 +558,5 @@ if __name__ == "__main__":
     diagram_comprar_construir()
     diagram_ciclo_assinatura()
     diagram_fluxo_caixa_saas()
+    diagram_metricas_sucesso()
+    diagram_metricas_vaidade()

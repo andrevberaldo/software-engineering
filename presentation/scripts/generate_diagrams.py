@@ -549,6 +549,70 @@ def diagram_metricas_vaidade():
     save(fig, "diagrama_metricas_vaidade.png")
 
 
+# ---------------------------------------------------------------------------
+# 10. Antecipação automatizada de renovação (previsão de churn/receita)
+# ---------------------------------------------------------------------------
+def diagram_previsao_renovacao():
+    w, h = 12.0, 5.8
+    fig, ax = new_fig(w, h)
+
+    def box(x, y, bw, bh, text, fc, tc, fs=12, bold=False, ec="none", lw=0):
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - bw / 2, y - bh / 2), bw, bh,
+                boxstyle="round,pad=0.02,rounding_size=0.12",
+                facecolor=fc, edgecolor=ec, linewidth=lw, zorder=2,
+            )
+        )
+        ax.text(x, y, text, ha="center", va="center", fontsize=fs,
+                color=tc, fontweight="bold" if bold else "normal",
+                linespacing=1.4, zorder=3)
+
+    top_y = 0.85
+    box(6.0, top_y, 6.4, 1.0,
+        "Sinais de uso, contato e sinistros de cada cliente",
+        ICE_SOFT, NAVY, fs=12.5, bold=True)
+
+    mid_y = 2.35
+    box(6.0, mid_y, 6.8, 1.15,
+        "IA estima o risco de cancelamento\ne projeta a receita futura",
+        NAVY, WHITE, fs=13.5, bold=True)
+
+    ax.add_patch(FancyArrowPatch((6.0, top_y + 0.52), (6.0, mid_y - 0.6),
+                                  arrowstyle="-|>", mutation_scale=16, linewidth=2,
+                                  color=AMBER, zorder=1))
+
+    branch_y = 4.35
+    left_x, right_x = 3.2, 8.8
+
+    ax.add_patch(FancyArrowPatch((6.0, mid_y + 0.58), (left_x, branch_y - 0.6),
+                                  connectionstyle="arc3,rad=-0.15",
+                                  arrowstyle="-|>", mutation_scale=15, linewidth=1.8,
+                                  color=NAVY_SOFT, zorder=1))
+    ax.add_patch(FancyArrowPatch((6.0, mid_y + 0.58), (right_x, branch_y - 0.6),
+                                  connectionstyle="arc3,rad=0.15",
+                                  arrowstyle="-|>", mutation_scale=15, linewidth=1.8,
+                                  color=NAVY_SOFT, zorder=1))
+
+    ax.text(left_x, branch_y - 1.0, "Risco baixo", ha="center", fontsize=12,
+            fontweight="bold", color=NAVY_SOFT)
+    ax.text(right_x, branch_y - 1.0, "Risco alto", ha="center", fontsize=12,
+            fontweight="bold", color=AMBER)
+
+    box(left_x, branch_y, 4.6, 1.35,
+        "Sistema envia um lembrete e\ndestaca vantagens da apólice\ndireto ao cliente",
+        ICE_SOFT, NAVY, fs=11.5, ec=ICE, lw=1.8)
+    box(right_x, branch_y, 4.6, 1.35,
+        "Corretor humano é avisado\npara uma conversa prioritária\ncom o cliente",
+        WHITE, INK, fs=11.5, ec=AMBER, lw=2)
+
+    ax.text(6.0, h - 0.15,
+            "A tecnologia age antes da data de vencimento chegar",
+            ha="center", va="bottom", fontsize=12.5, color=NAVY_SOFT, style="italic")
+
+    save(fig, "diagrama_previsao_renovacao.png")
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     diagram_lifecycle()
@@ -560,3 +624,4 @@ if __name__ == "__main__":
     diagram_fluxo_caixa_saas()
     diagram_metricas_sucesso()
     diagram_metricas_vaidade()
+    diagram_previsao_renovacao()

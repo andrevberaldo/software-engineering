@@ -13,7 +13,7 @@ date: Setembro de 2026
 - Comprar ou construir a própria solução
 - Como medir o sucesso de um produto
 - Inteligência artificial no software
-- Caso prático: uma corretora de seguros
+- Fechando com um caso prático
 
 ::: notes
 Abertura: o objetivo desta conversa é desmistificar como um produto ou uma
@@ -247,7 +247,18 @@ informações se conectam entre si, como um mapa de relacionamentos, o que
 ajuda a responder perguntas mais complexas.
 :::
 
-# Caso prático: uma corretora de seguros
+# Mensagens-chave
+
+## O que vale levar desta conversa
+
+- Todo produto e toda funcionalidade seguem um ciclo, da oportunidade ao aprendizado
+- Product Owner, System Engineer e Tech Lead olham para o mesmo problema sob ângulos diferentes
+- Ciclos curtos e validação rápida reduzem risco e aceleram resultados
+- Comprar ou construir depende do quanto a solução diferencia o negócio, e um modelo por assinatura vive da renovação
+- Métricas de uso, receita e satisfação mostram se um produto está realmente funcionando
+- A inteligência artificial adiciona uma nova camada de valor, mas exige dados confiáveis e boa governança
+
+# Um caso prático: juntando tudo o que vimos
 
 ## O contexto: NovaSeguro Corretora (exemplo fictício)
 
@@ -262,6 +273,13 @@ ajuda a responder perguntas mais complexas.
 - É difícil comparar coberturas entre seguradoras diferentes na hora da conversa com o cliente
 - Perguntas mais complexas, como possíveis sobreposições de cobertura, quase nunca são respondidas na hora
 - O resultado é atendimento mais lento e risco de informação incorreta
+
+## Um detalhe importante: apólices também se renovam
+
+- Diferente de uma compra única, uma apólice de seguro é renovada periodicamente, quase sempre uma vez por ano
+- Isso significa que os mesmos conceitos vistos em negócios por assinatura se aplicam aqui: uso, satisfação e, principalmente, renovação
+- Cada renovação bem-sucedida garante receita futura; cada cancelamento é uma perda que poderia ter sido antecipada
+- Por isso a NovaSeguro decide usar tecnologia não só para atender bem, mas para entender e influenciar essas renovações
 
 ## A solução: um assistente inteligente para os corretores
 
@@ -281,27 +299,37 @@ ajuda a responder perguntas mais complexas.
 - O assistente passa a enxergar o panorama completo do cliente, e não apenas um documento isolado
 - É um salto de "responder perguntas" para "gerar recomendações de negócio"
 
+## Indo além: prevendo receita e risco de cancelamento
+
+- O mesmo assistente passa a olhar para o histórico de uso e de relacionamento de cada cliente
+- Com base nesses sinais, ele estima a chance de cada apólice ser renovada ou cancelada
+- Essa estimativa alimenta uma projeção da receita futura da corretora, mês a mês
+- Uma decisão antes baseada só em intuição passa a ser apoiada em dados
+
+## Antecipando a renovação, antes do cliente decidir
+
+![](assets/diagrama_previsao_renovacao.png){width=88%}
+
+::: notes
+Quando o risco de cancelamento é baixo, o próprio sistema entra em contato
+com o cliente, lembrando do valor da apólice antes do vencimento. Quando o
+risco é alto ou o caso é mais sensível, a prioridade passa para um corretor
+humano, que consegue agir a tempo em vez de descobrir a perda só na hora da
+renovação.
+:::
+
 ## Benefícios para o negócio
 
-- Atendimento mais rápido, com menos tempo de espera para o cliente
-- Menos erros por informação desatualizada ou mal interpretada
-- Decisões melhores, apoiadas em uma visão mais completa do cliente
-- Integração mais simples com os sistemas de cada seguradora parceira
+- Atendimento mais rápido e preciso, com menos tempo de espera para o cliente
+- Menos cancelamentos, porque sinais de risco são tratados antes do vencimento da apólice
+- Previsão de receita mais confiável, o que ajuda o planejamento financeiro da corretora
+- Decisões melhores, apoiadas em uma visão mais completa de cada cliente
 
 ## Cuidados importantes
 
-- A qualidade da resposta depende da qualidade dos dados usados como fonte
+- A qualidade da previsão depende da qualidade dos dados usados como fonte
 - Pessoas continuam responsáveis por revisar decisões de maior impacto
-- É preciso definir regras claras de acesso e uso da informação dos clientes
+- O contato automático com o cliente precisa ser cuidadoso, sem parecer invasivo ou impessoal
 - Inteligência artificial é uma ferramenta poderosa, mas não substitui a governança do negócio
-
-# Mensagens-chave
-
-## O que vale levar desta conversa
-
-- Todo produto e toda funcionalidade seguem um ciclo, da oportunidade ao aprendizado
-- Product Owner, System Engineer e Tech Lead olham para o mesmo problema sob ângulos diferentes
-- Ciclos curtos e validação rápida reduzem risco e aceleram resultados
-- A inteligência artificial adiciona uma nova camada de valor, mas exige dados confiáveis e boa governança
 
 # Obrigado

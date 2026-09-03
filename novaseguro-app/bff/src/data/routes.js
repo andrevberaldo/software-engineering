@@ -4,6 +4,16 @@ const { requireAuth } = require("../middleware/requireAuth");
 
 const router = express.Router();
 
+router.get("/seguradoras", requireAuth, async (_req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT id, nome FROM seguradoras ORDER BY nome");
+    res.json({ seguradoras: rows });
+  } catch (err) {
+    console.error("Erro ao listar seguradoras:", err);
+    res.status(500).json({ error: "Erro ao buscar seguradoras" });
+  }
+});
+
 router.get("/dashboard", requireAuth, async (_req, res) => {
   try {
     const [clientesRes, apolicesRes, emRiscoRes, previsoesRes] = await Promise.all([

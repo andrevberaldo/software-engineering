@@ -15,5 +15,8 @@ backend/.env
 bff/.env
 frontend/.env.local
 
+# Armazenamento local de PDFs (fora do Docker, sem volume)
+backend/data/
+
 # SO / editores
 .DS_Store

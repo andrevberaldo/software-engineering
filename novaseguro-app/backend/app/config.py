@@ -22,6 +22,11 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:4000"
 
+    # Diretório onde os PDFs enviados ficam guardados para download. Em
+    # produção (docker-compose) isso é um volume nomeado; localmente, uma
+    # pasta relativa dentro de backend/.
+    storage_dir: str = "./data/documentos"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

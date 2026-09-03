@@ -6,6 +6,7 @@ const config = require("./config");
 const authRoutes = require("./auth/routes");
 const agentRoutes = require("./agent/routes");
 const dataRoutes = require("./data/routes");
+const documentsRoutes = require("./documents/routes");
 const { pool } = require("./db");
 
 const app = express();
@@ -32,6 +33,7 @@ app.get("/api/health", async (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/agent", agentRoutes);
 app.use("/api/data", dataRoutes);
+app.use("/api/documents", documentsRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

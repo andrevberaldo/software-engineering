@@ -5,40 +5,37 @@ cada uma é o que o modelo lê para decidir quando usá-la — por isso são
 descritivos e em português, no mesmo idioma das respostas esperadas.
 """
 from langchain_core.tools import tool
-from openai import OpenAI
 
-from ..config import get_settings
 from ..db import get_cursor
+from .embeddings import embed_text
 from .prediction import compute_prediction
-
-
-def _embed(text: str) -> list[float]:
-    settings = get_settings()
-    client = OpenAI(api_key=settings.openai_api_key)
-    response = client.embeddings.create(model=settings.openai_embedding_model, input=text)
-    return response.data[0].embedding
 
 
 @tool
 def buscar_documentos(pergunta: str, top_k: int = 4) -> str:
     """Busca trechos relevantes na base de conhecimento (manuais de apólices e
-    políticas internas da NovaSeguro) usando busca por similaridade (RAG).
-    Use esta ferramenta sempre que a pergunta envolver regras de cobertura,
-    franquias, carências ou políticas internas. Sempre cite o título do
-    documento na resposta final.
+    políticas internas da NovaSeguro, incluindo PDFs enviados pelas
+    seguradoras) usando busca por similaridade (RAG). Use esta ferramenta
+    sempre que a pergunta envolver regras de cobertura, franquias, carências
+    ou políticas internas. Sempre cite o título do documento na resposta
+    final, para que o corretor saiba de onde veio a informação.
     """
-    try:
-        query_embedding = _embed(pergunta)
-    except Exception as exc:  # pragma: no cover - depende de chave OpenAI válida
-        return f"Não foi possível gerar o embedding da pergunta: {exc}"
+    query_embedding = embed_text(pergunta)
+    if query_embedding is None:
+        return (
+            "Não foi possível gerar o embedding da pergunta (verifique se "
+            "OPENAI_API_KEY está configurada)."
+        )
 
     with get_cursor() as cur:
         cur.execute(
             """
-            SELECT titulo, conteudo, 1 - (embedding <=> %(q)s) AS similaridade
-            FROM documentos
-            WHERE embedding IS NOT NULL
-            ORDER BY embedding <=> %(q)s
+            SELECT d.id AS documento_id, d.titulo, c.conteudo,
+                   1 - (c.embedding <=> %(q)s) AS similaridade
+            FROM documento_chunks c
+            JOIN documentos d ON d.id = c.documento_id
+            WHERE c.embedding IS NOT NULL
+            ORDER BY c.embedding <=> %(q)s
             LIMIT %(k)s
             """,
             {"q": query_embedding, "k": top_k},
@@ -47,13 +44,13 @@ def buscar_documentos(pergunta: str, top_k: int = 4) -> str:
 
     if not rows:
         return (
-            "Nenhum documento com embedding foi encontrado. É provável que o banco "
-            "ainda não tenha rodado o script seed_embeddings.py (necessário para "
-            "gerar os vetores com uma OPENAI_API_KEY válida)."
+            "Nenhum chunk com embedding foi encontrado. Envie um PDF em "
+            "/documents/upload ou rode o script seed_embeddings.py (ambos "
+            "precisam de uma OPENAI_API_KEY válida para gerar os vetores)."
         )
 
     partes = [
-        f"[{r['titulo']}] (similaridade {r['similaridade']:.2f})\n{r['conteudo']}"
+        f"[{r['titulo']} — documento #{r['documento_id']}] (similaridade {r['similaridade']:.2f})\n{r['conteudo']}"
         for r in rows
     ]
     return "\n\n".join(partes)

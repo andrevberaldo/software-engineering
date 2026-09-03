@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: "Painel", href: "/dashboard" },
   { label: "Assistente de IA", href: "/chat" },
   { label: "Clientes", href: "/clientes" },
+  { label: "Documentos", href: "/documentos" },
 ];
 
 export default function AppShell({

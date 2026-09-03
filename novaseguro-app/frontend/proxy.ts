@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "./lib/session";
 import { SESSION_COOKIE_NAME } from "./lib/config";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/chat", "/clientes"];
+const PROTECTED_PREFIXES = ["/dashboard", "/chat", "/clientes", "/documentos"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,5 +25,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/chat/:path*", "/clientes/:path*"],
+  matcher: ["/dashboard/:path*", "/chat/:path*", "/clientes/:path*", "/documentos/:path*"],
 };

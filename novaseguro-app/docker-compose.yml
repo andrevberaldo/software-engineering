@@ -27,6 +27,10 @@ services:
       OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-every-environment}
       CORS_ORIGINS: http://localhost:4000
+      STORAGE_DIR: /data/documentos
+    volumes:
+      - documentos_data:/data/documentos
+      - ./db:/app/db:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,3 +69,4 @@ services:
 
 volumes:
   postgres_data:
+  documentos_data:

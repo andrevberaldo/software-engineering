@@ -318,6 +318,33 @@ humano, que consegue agir a tempo em vez de descobrir a perda só na hora da
 renovação.
 :::
 
+## Do papel para a tela: a ferramenta em produção
+
+![](assets/screenshots/app_home.png){width=85%}
+
+::: notes
+Tudo que foi descrito até aqui não ficou só no conceito: esta é a página
+inicial real da ferramenta, já construída, com a mesma identidade visual
+usada nesta apresentação. A partir daqui, alguns prints do dia a dia de
+quem usa o copiloto.
+:::
+
+## Painel do corretor, com dados reais da carteira
+
+![](assets/screenshots/app_dashboard.png){width=85%}
+
+## Conversando com o copiloto de IA
+
+![](assets/screenshots/app_chat.png){width=85%}
+
+## Visão da carteira de clientes
+
+![](assets/screenshots/app_clientes.png){width=85%}
+
+## Enviando apólices em PDF para a base de conhecimento
+
+![](assets/screenshots/app_documentos.png){width=85%}
+
 ## Benefícios para o negócio
 
 - Atendimento mais rápido e preciso, com menos tempo de espera para o cliente

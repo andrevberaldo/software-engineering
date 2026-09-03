@@ -1,0 +1,19 @@
+# Node
+node_modules/
+.next/
+npm-debug.log*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Env files reais (mantenha só os .env.example no repo)
+.env
+.env.local
+backend/.env
+bff/.env
+frontend/.env.local
+
+# SO / editores
+.DS_Store

@@ -28,7 +28,7 @@ def chat(payload: ChatRequest, user: dict = Depends(get_current_user)) -> ChatRe
     thread_id = payload.thread_id or f"user-{user.get('sub', 'anon')}"
 
     try:
-        agent = get_agent()
+        agent = get_agent(user["tenant_id"])
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 

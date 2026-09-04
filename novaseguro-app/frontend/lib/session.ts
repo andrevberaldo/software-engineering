@@ -5,6 +5,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: string;
+  tenant_id: number;
 }
 
 const secret = new TextEncoder().encode(

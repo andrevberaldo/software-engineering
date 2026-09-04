@@ -1,10 +1,16 @@
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 
 from .config import get_settings
+
+# Hash bcrypt de uma senha aleatória, usado só para comparar contra ele
+# quando o e-mail não existe naquele tenant — mantém o tempo de resposta
+# do login igual em ambos os casos, evitando enumerar e-mails/tenants por
+# timing.
+DUMMY_PASSWORD_HASH = "$2b$12$CY1mTbjDwKYBF.3J04t9I.V6HmDMCd60VAmmvneYG7ETUe1.vIfIm"
 
 
 def verify_password(password: str, password_hash: str) -> bool:
@@ -22,6 +28,7 @@ def create_access_token(user: dict) -> str:
         "email": user["email"],
         "name": user["name"],
         "role": user["role"],
+        "tenant_id": user["tenant_id"],
         "iat": now,
         "exp": now + timedelta(minutes=settings.jwt_expires_minutes),
     }
@@ -47,3 +54,15 @@ def get_current_user(request: Request) -> dict:
         ) from exc
 
     return payload
+
+
+def require_admin(user: dict = Depends(get_current_user)) -> dict:
+    """Igual a get_current_user, mas só libera usuários com role 'admin' —
+    usado nas rotas que alteram a identidade visual do tenant.
+    """
+    if user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores podem fazer isso",
+        )
+    return user

@@ -23,13 +23,29 @@ class Settings(BaseSettings):
 
     cookie_name: str = "ns_session"
     cookie_secure: bool = False
+    # Domínio do cookie de sessão. None = host-only (funciona quando
+    # frontend e backend estão no mesmo host, ignorando porta — o caso de
+    # um único tenant). Para multi-tenant por subdomínio, onde o frontend
+    # vive em <slug>.dominio.com mas a API fica num host fixo (ex.:
+    # api.dominio.com), o cookie precisa de um domínio com o ponto à frente
+    # (ex.: ".dominio.com" ou ".localhost" em dev) para ficar visível em
+    # todos os subdomínios.
+    cookie_domain: str | None = None
 
     cors_origins: str = "http://localhost:3000"
+    # Regex de origens liberadas, para SaaS multi-tenant por subdomínio
+    # (ex.: r"https://.*\.minhaempresa\.com"). Somado (OR) a cors_origins.
+    cors_origin_regex: str | None = None
 
-    # Diretório onde os PDFs enviados ficam guardados para download. Em
-    # produção (docker-compose) isso é um volume nomeado; localmente, uma
-    # pasta relativa dentro de backend/.
+    # Diretório onde os PDFs e logos enviados ficam guardados. Em produção
+    # (docker-compose) isso é um volume nomeado; localmente, uma pasta
+    # relativa dentro de backend/.
     storage_dir: str = "./data/documentos"
+
+    # Slug de tenant usado quando a requisição não indica subdomínio algum
+    # (localhost, IP, ou host sem ponto) — mantém o fluxo de desenvolvimento
+    # local funcionando sem exigir configuração de DNS/hosts.
+    default_tenant_slug: str = "novaseguro"
 
     @property
     def cors_origin_list(self) -> list[str]:

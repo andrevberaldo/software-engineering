@@ -27,7 +27,15 @@ services:
       OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-every-environment}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Vazio por padrão: cookie host-only, funciona para um domínio só.
+      # Em produção com subdomínio por assinante (ex.: acme.suaempresa.com),
+      # defina como ".suaempresa.com" para o cookie de sessão valer em
+      # todos os subdomínios.
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
       CORS_ORIGINS: http://localhost:3000
+      # Ex. em produção: ^https://.*\.suaempresa\.com$
+      CORS_ORIGIN_REGEX: ${CORS_ORIGIN_REGEX:-}
+      DEFAULT_TENANT_SLUG: ${DEFAULT_TENANT_SLUG:-novaseguro}
       STORAGE_DIR: /data/documentos
     volumes:
       - documentos_data:/data/documentos

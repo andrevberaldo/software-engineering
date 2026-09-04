@@ -7,17 +7,17 @@ import json
 from datetime import date
 
 
-def compute_prediction(cur, apolice_id: int) -> dict:
+def compute_prediction(cur, apolice_id: int, tenant_id: int) -> dict:
     cur.execute(
         """
         SELECT a.id, a.valor_mensal, a.data_renovacao, a.tipo_cobertura,
                a.cliente_id, c.nome AS cliente_nome, s.nome AS seguradora_nome
         FROM apolices a
-        JOIN clientes c ON c.id = a.cliente_id
-        JOIN seguradoras s ON s.id = a.seguradora_id
-        WHERE a.id = %(id)s
+        JOIN clientes c ON c.id = a.cliente_id AND c.tenant_id = a.tenant_id
+        JOIN seguradoras s ON s.id = a.seguradora_id AND s.tenant_id = a.tenant_id
+        WHERE a.id = %(id)s AND a.tenant_id = %(tenant_id)s
         """,
-        {"id": apolice_id},
+        {"id": apolice_id, "tenant_id": tenant_id},
     )
     apolice = cur.fetchone()
     if apolice is None:
@@ -28,17 +28,18 @@ def compute_prediction(cur, apolice_id: int) -> dict:
     cur.execute(
         """
         SELECT tipo, data FROM interacoes
-        WHERE cliente_id = %(cliente_id)s
+        WHERE cliente_id = %(cliente_id)s AND tenant_id = %(tenant_id)s
         """,
-        {"cliente_id": cliente_id},
+        {"cliente_id": cliente_id, "tenant_id": tenant_id},
     )
     interacoes = cur.fetchall()
 
     cur.execute(
         """
-        SELECT data, valor FROM sinistros WHERE apolice_id = %(apolice_id)s
+        SELECT data, valor FROM sinistros
+        WHERE apolice_id = %(apolice_id)s AND tenant_id = %(tenant_id)s
         """,
-        {"apolice_id": apolice_id},
+        {"apolice_id": apolice_id, "tenant_id": tenant_id},
     )
     sinistros = cur.fetchall()
 
@@ -100,12 +101,13 @@ def compute_prediction(cur, apolice_id: int) -> dict:
     cur.execute(
         """
         INSERT INTO previsoes_renovacao
-            (apolice_id, probabilidade_renovacao, receita_projetada, risco, fatores)
-        VALUES (%(apolice_id)s, %(probabilidade_renovacao)s, %(receita_projetada)s,
+            (tenant_id, apolice_id, probabilidade_renovacao, receita_projetada, risco, fatores)
+        VALUES (%(tenant_id)s, %(apolice_id)s, %(probabilidade_renovacao)s, %(receita_projetada)s,
                 %(risco)s, %(fatores)s)
         """,
         {
             **resultado,
+            "tenant_id": tenant_id,
             "fatores": json.dumps(fatores, ensure_ascii=False),
         },
     )

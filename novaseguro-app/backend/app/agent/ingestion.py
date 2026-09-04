@@ -65,10 +65,12 @@ def extract_chunks(pdf_path: Path) -> list[dict]:
     return chunks
 
 
-def ingest_pdf(cur, documento_id: int, pdf_path: Path) -> int:
+def ingest_pdf(cur, documento_id: int, pdf_path: Path, tenant_id: int) -> int:
     """Extrai, faz o chunking e grava os embeddings de um PDF já salvo em
-    disco, associando cada chunk ao `documento_id`. Devolve quantos chunks
-    foram gravados (0 se o PDF não tiver texto extraível).
+    disco, associando cada chunk ao `documento_id` (e ao `tenant_id` do
+    documento, para a busca por similaridade poder filtrar por tenant sem
+    precisar de join). Devolve quantos chunks foram gravados (0 se o PDF
+    não tiver texto extraível).
     """
     chunks = extract_chunks(pdf_path)
     if not chunks:
@@ -81,8 +83,8 @@ def ingest_pdf(cur, documento_id: int, pdf_path: Path) -> int:
     for index, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         cur.execute(
             """
-            INSERT INTO documento_chunks (documento_id, chunk_index, conteudo, embedding, metadados)
-            VALUES (%(documento_id)s, %(chunk_index)s, %(conteudo)s, %(embedding)s, %(metadados)s)
+            INSERT INTO documento_chunks (documento_id, tenant_id, chunk_index, conteudo, embedding, metadados)
+            VALUES (%(documento_id)s, %(tenant_id)s, %(chunk_index)s, %(conteudo)s, %(embedding)s, %(metadados)s)
             ON CONFLICT (documento_id, chunk_index) DO UPDATE
                 SET conteudo = EXCLUDED.conteudo,
                     embedding = EXCLUDED.embedding,
@@ -90,6 +92,7 @@ def ingest_pdf(cur, documento_id: int, pdf_path: Path) -> int:
             """,
             {
                 "documento_id": documento_id,
+                "tenant_id": tenant_id,
                 "chunk_index": index,
                 "conteudo": chunk["texto"],
                 "embedding": embedding,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "./lib/session";
 import { SESSION_COOKIE_NAME } from "./lib/config";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/chat", "/clientes", "/documentos"];
+const PROTECTED_PREFIXES = ["/dashboard", "/chat", "/clientes", "/documentos", "/configuracoes"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -21,9 +21,21 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Gate de UX só — quem garante de verdade é o backend (require_admin em
+  // PUT /tenants/branding), já que um cookie pode ser forjado/reaproveitado.
+  if (pathname.startsWith("/configuracoes") && session.role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/chat/:path*", "/clientes/:path*", "/documentos/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/chat/:path*",
+    "/clientes/:path*",
+    "/documentos/:path*",
+    "/configuracoes/:path*",
+  ],
 };

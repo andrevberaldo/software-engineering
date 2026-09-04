@@ -48,20 +48,51 @@ router.get("/dashboard", requireAuth, async (_req, res) => {
 
 router.get("/clientes", requireAuth, async (_req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT
-        c.id,
-        c.nome,
-        c.email,
-        c.corretor_responsavel,
-        COUNT(a.id)::int AS total_apolices,
-        MIN(a.data_renovacao) FILTER (WHERE a.status = 'ativa') AS proxima_renovacao
-      FROM clientes c
-      LEFT JOIN apolices a ON a.cliente_id = c.id
-      GROUP BY c.id
-      ORDER BY proxima_renovacao NULLS LAST
-    `);
-    res.json({ clientes: rows });
+    const [clientesRes, apolicesRes] = await Promise.all([
+      pool.query(`
+        SELECT
+          c.id,
+          c.nome,
+          c.email,
+          c.corretor_responsavel,
+          COUNT(a.id)::int AS total_apolices,
+          MIN(a.data_renovacao) FILTER (WHERE a.status = 'ativa') AS proxima_renovacao,
+          COALESCE(SUM(a.valor_patrimonio_segurado) FILTER (WHERE a.status = 'ativa'), 0) AS patrimonio_total
+        FROM clientes c
+        LEFT JOIN apolices a ON a.cliente_id = c.id
+        GROUP BY c.id
+        ORDER BY proxima_renovacao NULLS LAST
+      `),
+      pool.query(`
+        SELECT
+          a.id,
+          a.cliente_id,
+          a.tipo_cobertura,
+          a.status,
+          a.data_inicio,
+          a.data_renovacao,
+          a.valor_patrimonio_segurado,
+          a.descricao_patrimonio,
+          s.nome AS seguradora
+        FROM apolices a
+        JOIN seguradoras s ON s.id = a.seguradora_id
+        ORDER BY a.data_renovacao
+      `),
+    ]);
+
+    const apolicesPorCliente = new Map();
+    for (const apolice of apolicesRes.rows) {
+      const lista = apolicesPorCliente.get(apolice.cliente_id) || [];
+      lista.push(apolice);
+      apolicesPorCliente.set(apolice.cliente_id, lista);
+    }
+
+    const clientes = clientesRes.rows.map((c) => ({
+      ...c,
+      apolices: apolicesPorCliente.get(c.id) || [],
+    }));
+
+    res.json({ clientes });
   } catch (err) {
     console.error("Erro ao listar clientes:", err);
     res.status(500).json({ error: "Erro ao buscar clientes" });

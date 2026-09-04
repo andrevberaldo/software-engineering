@@ -334,6 +334,19 @@ quem usa o copiloto.
 
 ![](assets/screenshots/app_clientes.png){width=85%}
 
+## O patrimônio de cada cliente, em um só lugar
+
+![](assets/screenshots/app_clientes_detalhe.png){width=85%}
+
+::: notes
+Cada apólice segura um patrimônio específico do cliente — um carro, um
+imóvel, os equipamentos de uma empresa. Ao abrir um cliente, o corretor vê
+o valor desse patrimônio, a descrição do que está sendo segurado, a data
+em que a apólice começou e a data da próxima renovação, tudo lado a lado.
+Isso substitui planilhas soltas e torna imediato saber quanto patrimônio a
+corretora protege e quando cada contrato precisa de atenção.
+:::
+
 ## Enviando apólices em PDF para a base de conhecimento
 
 ![](assets/screenshots/app_documentos.png){width=85%}

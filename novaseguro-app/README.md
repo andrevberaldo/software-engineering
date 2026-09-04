@@ -32,7 +32,11 @@ cancelamento, e antecipação automatizada de renovação.
 - **frontend/** — Next.js (App Router) + Material UI. Página inicial pública
   com apresentação da ferramenta e botão "Entrar"; páginas `/dashboard`,
   `/chat`, `/clientes` e `/documentos` protegidas por sessão (verificada em
-  `proxy.ts`).
+  `proxy.ts`). A página `/clientes` funciona como um dashboard do
+  patrimônio segurado: para cada cliente, mostra o patrimônio total
+  assegurado e, ao expandir a linha, o valor e a descrição do patrimônio
+  de cada apólice (o carro, o imóvel, os equipamentos da empresa), além das
+  datas de início e de renovação.
 - **bff/** — Node.js/Express. Único serviço que fala com o Postgres para
   autenticação e dados simples; emite o cookie de sessão (JWT) e repassa
   esse mesmo token como Bearer para o backend de IA. Também repassa (via

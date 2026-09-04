@@ -57,30 +57,23 @@ a próxima oportunidade.
 
 # Quem faz o quê
 
-## Três papéis, um objetivo em comum
+## Dois núcleos, um objetivo em comum
 
 ![](assets/diagrama_papeis.png){width=92%}
 
-## Product Owner: a voz do negócio e do cliente
+## Núcleo de Negócios: a voz do negócio e do cliente
 
 - Entende profundamente o cliente, o mercado e a estratégia do negócio
 - Decide o que deve ser feito primeiro, com base no valor gerado
 - É o ponto de contato entre as áreas de negócio e o time que constrói a solução
 - Garante que o time esteja sempre resolvendo o problema certo
 
-## System Engineer: a costura entre os sistemas
+## Núcleo Técnico: da arquitetura à entrega com qualidade
 
-- Olha para o produto de forma ampla, além de uma única funcionalidade
-- Garante que as diferentes partes do sistema conversem entre si sem atrito
-- Cuida da integração com sistemas de parceiros e de outras áreas da empresa
-- Pensa em crescimento futuro: a solução precisa continuar funcionando bem quando o uso aumentar
-
-## Tech Lead: qualidade e liderança técnica
-
-- Lidera o time responsável por construir a solução no dia a dia
-- Decide, junto com o time, a melhor forma técnica de resolver cada problema
-- Cuida da qualidade, da segurança e da manutenção do que é construído
-- Ajuda a estimar prazos e a identificar riscos antes que eles virem problemas
+- Olha para o produto de forma ampla e garante que as diferentes partes do sistema conversem entre si sem atrito, inclusive com sistemas de parceiros
+- Lidera o time responsável por construir a solução no dia a dia, decidindo a melhor forma técnica de resolver cada problema
+- Cuida da qualidade, da segurança e da manutenção do que é construído, hoje e conforme o uso cresce
+- Ajuda a estimar prazos e identificar riscos técnicos antes que eles virem problemas
 
 # Trabalhando em ciclos rápidos
 
@@ -252,7 +245,7 @@ ajuda a responder perguntas mais complexas.
 ## O que vale levar desta conversa
 
 - Todo produto e toda funcionalidade seguem um ciclo, da oportunidade ao aprendizado
-- Product Owner, System Engineer e Tech Lead olham para o mesmo problema sob ângulos diferentes
+- Núcleo de Negócios e Núcleo Técnico olham para o mesmo problema sob ângulos complementares
 - Ciclos curtos e validação rápida reduzem risco e aceleram resultados
 - Comprar ou construir depende do quanto a solução diferencia o negócio, e um modelo por assinatura vive da renovação
 - Métricas de uso, receita e satisfação mostram se um produto está realmente funcionando

@@ -116,12 +116,11 @@ def diagram_roles():
     fig, ax = new_fig(w, h)
 
     roles = [
-        ("PO", "Product Owner", "Entende o cliente e o\nnegócio. Decide o que\ntem mais valor fazer."),
-        ("AS", "System Engineer", "Garante que as peças do\nsistema se encaixam e\nse conectam bem."),
-        ("TL", "Tech Lead", "Lidera o time técnico e\ncuida da qualidade de\ncomo tudo é construído."),
+        ("NN", "Núcleo de Negócios", "Entende o cliente e o mercado.\nDecide o que tem mais valor\nfazer, e por quê."),
+        ("NT", "Núcleo Técnico", "Desenha a arquitetura, garante\nas integrações e lidera a\nconstrução com qualidade."),
     ]
     n = len(roles)
-    margin = 1.8
+    margin = 3.3
     usable = w - 2 * margin
     xs = [margin + usable * i / (n - 1) for i in range(n)]
     cy = 1.35
@@ -146,7 +145,7 @@ def diagram_roles():
                 color=GRAY, linespacing=1.5)
 
     ax.text(w / 2, h - 0.15,
-            "Três olhares diferentes, uma mesma entrega",
+            "Dois olhares complementares, uma mesma entrega",
             ha="center", va="bottom", fontsize=12.5, color=NAVY_SOFT, style="italic")
 
     save(fig, "diagrama_papeis.png")

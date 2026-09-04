@@ -6,6 +6,12 @@ seguros fictícia (NovaSeguro), com consulta a apólices via RAG, visão
 relacionada de clientes/seguradoras, previsão de receita e risco de
 cancelamento, e antecipação automatizada de renovação.
 
+É um **SaaS multi-tenant de verdade**: cada assinante ("tenant") tem seus
+dados completamente isolados dos demais e sua própria identidade visual
+(nome da empresa, cor do cabeçalho, logotipo), editável por um admin em
+**Configurações > Identidade Visual**. Veja a seção
+[Multi-tenant e identidade visual](#multi-tenant-e-identidade-visual).
+
 ## Arquitetura
 
 ```
@@ -58,6 +64,9 @@ linguagens (veja a justificativa dessa escolha no fim desta seção).
   - **Ingestão de PDFs** (`/documents/*`) com
     [Docling](https://github.com/docling-project/docling) (veja a seção
     dedicada abaixo).
+  - **Identidade visual** (`/tenants/branding`, leitura/gravação; e
+    `/public/branding` + `/public/tenants/{slug}/logo`, leitura pública):
+    veja a seção dedicada abaixo.
 - **db/** — schema SQL, seed de dados fictícios e script para gerar os
   embeddings da base de conhecimento.
 
@@ -78,16 +87,29 @@ livre de qualquer preocupação de sessão web.
 
 ## Login padrão
 
-Usuário administrador semeado no banco:
+Dois assinantes fictícios são semeados no banco, para provar o isolamento
+multi-tenant e a identidade visual por assinante:
 
-- **Email:** `admin@novaseguro.com.br`
-- **Senha:** `admin`
+| Assinante | Slug | Email | Senha | Cor do cabeçalho |
+|---|---|---|---|---|
+| NovaSeguro Corretora | `novaseguro` | `admin@novaseguro.com.br` | `admin` | `#1E2761` (navy) |
+| Beta Seguros | `beta` | `admin@betaseguros.com.br` | `admin` | `#7A1F3D` (bordô) |
 
-Apenas usuários autenticados acessam `/dashboard`, `/chat`, `/clientes` e
-`/documentos` — isso é garantido tanto pelo `proxy.ts` do Next.js (que
-verifica o JWT antes de renderizar a página) quanto pela dependência
-`get_current_user` do backend (que protege as rotas da API lendo o mesmo
-cookie de sessão).
+Sem subdomínio configurado (ex.: acessando `http://localhost:3000`
+direto), o login sempre resolve para o tenant padrão
+(`DEFAULT_TENANT_SLUG`, `novaseguro`) — é assim que o assinante
+`admin@betaseguros.com.br` só consegue entrar acessando pelo subdomínio
+`beta` (veja [Testando multi-tenant por subdomínio
+localmente](#testando-multi-tenant-por-subdomínio-localmente)).
+
+Apenas usuários autenticados acessam `/dashboard`, `/chat`, `/clientes`,
+`/documentos` e `/configuracoes` — isso é garantido tanto pelo `proxy.ts`
+do Next.js (que verifica o JWT antes de renderizar a página) quanto pela
+dependência `get_current_user` do backend (que protege as rotas da API
+lendo o mesmo cookie de sessão). Só usuários com `role = 'admin'` veem o
+item "Configurações" e conseguem de fato gravar mudanças em
+`PUT /tenants/branding` — a checagem no `proxy.ts` é só UX, quem garante
+de verdade é o `require_admin` do backend.
 
 ## Rodando com Docker Compose
 
@@ -126,6 +148,8 @@ psql -d novaseguro -f db/init/01_schema.sql
 psql -d novaseguro -f db/init/02_seed.sql
 psql -d novaseguro -f db/init/03_documentos_chunks.sql
 psql -d novaseguro -f db/init/04_patrimonio_apolices.sql
+psql -d novaseguro -f db/init/05_multi_tenant.sql
+psql -d novaseguro -f db/init/06_seed_tenant_beta.sql
 
 # 2. Backend (Python)
 cd backend
@@ -147,13 +171,105 @@ OPENAI_API_KEY=sk-... python3 ../db/seed_embeddings.py
 
 Acesse `http://localhost:3000`.
 
+## Multi-tenant e identidade visual
+
+Cada assinante ("tenant") é uma linha em `tenants` (`slug`, `nome_empresa`,
+`header_color`, `logo_path`). Todas as outras tabelas (`users`, `clientes`,
+`apolices`, `documentos`, etc.) têm uma coluna `tenant_id` — e, além dela,
+**chaves estrangeiras compostas** `(tenant_id, id)` (veja
+`db/init/05_multi_tenant.sql`): isso torna estruturalmente impossível, a
+nível de banco, vincular um registro filho a um pai de outro tenant, mesmo
+que um endpoint futuro esqueça de filtrar por `tenant_id`.
+
+**Regra de segurança central:** em qualquer rota autenticada, o
+`tenant_id` vem exclusivamente da claim do JWT (definida no login) —
+nunca é re-derivado de `Host`/query string naquela requisição. Resolução
+de tenant por subdomínio (`app/tenancy.py: resolve_tenant_from_host`) só é
+usada nos 3 pontos que ainda não têm sessão: `POST /auth/login`,
+`GET /public/branding` e `GET /public/tenants/{slug}/logo`. Se o tenant
+autenticado fosse re-derivado do host a cada chamada, um admin do tenant A
+logado poderia trocar o parâmetro de host e ler/escrever dados do tenant B.
+
+Isso também fecha um IDOR que existia antes do multi-tenant:
+`GET /documents/{id}/download` hoje exige que o documento pertença ao
+tenant do usuário autenticado, não só que o id exista.
+
+### Resolução por subdomínio
+
+Em produção, cada assinante acessa por um subdomínio próprio (ex.:
+`acme.suaempresa.com`). Isso exige, fora do que este repositório provisiona:
+
+- **DNS coringa** (`*.suaempresa.com`) apontando para os mesmos servidores.
+- **Certificado TLS coringa** (ou um por subdomínio).
+- `COOKIE_DOMAIN=.suaempresa.com` no backend, para o cookie de sessão
+  valer em todos os subdomínios (por padrão é host-only, ou seja, funciona
+  só com um domínio/tenant).
+- `CORS_ORIGIN_REGEX=^https://.*\.suaempresa\.com$` no backend.
+
+Um reverse proxy (Traefik/nginx) na frente dos containers para rotear
+`*.suaempresa.com` para o `frontend` **não** está incluído no
+`docker-compose.yml` deste repositório — é infraestrutura específica de
+cada ambiente de deploy.
+
+### Identidade visual (Configurações > Identidade Visual)
+
+Só admins editam (`PUT /tenants/branding`, `require_admin` no backend).
+Qualquer usuário autenticado só lê (`GET /tenants/branding`); a home
+pública e o login usam a leitura sem autenticação
+(`GET /public/branding?host=...`) para já mostrar a marca certa antes do
+login.
+
+O logotipo é sempre SVG, salvo como `tenants/{tenant_id}/logo.svg` (nome
+fixo no backend — nunca confia na extensão enviada pelo cliente) e servido
+via `GET /public/tenants/{slug}/logo`. Como é exibido via `<img src>` (não
+inline), scripts embutidos no SVG não executam nesse contexto — mas
+navegar direto para a URL do arquivo executaria, então o upload rejeita
+conteúdo com `<script`, `on*=` ou `javascript:`, e a resposta do endpoint
+sempre inclui `Content-Security-Policy: script-src 'none'; sandbox` como
+proteção adicional.
+
+### Testando multi-tenant por subdomínio localmente
+
+`next dev` bloqueia por padrão requisições vindas de um host diferente do
+que o servidor foi iniciado (proteção do próprio Next.js, não afeta
+`next start`/produção). Para testar os dois assinantes de exemplo em
+subdomínios diferentes na sua máquina:
+
+1. Escolha um domínio local que **não** seja `.localhost` — navegadores
+   recusam `Set-Cookie` com `Domain=.localhost` (é tratado como TLD
+   reservado). Um domínio qualquer com 2+ partes funciona, ex.:
+   `appteste.dev` (não precisa existir de verdade, é só resolvido local).
+2. Adicione ao `/etc/hosts`:
+   ```
+   127.0.0.1 novaseguro.appteste.dev
+   127.0.0.1 beta.appteste.dev
+   127.0.0.1 api.appteste.dev
+   ```
+   (o backend também precisa de um host **dentro do mesmo domínio**, já
+   que o cookie com `Domain=.appteste.dev` só é aceito pelo navegador se
+   quem o emitiu — o backend — também estiver em `*.appteste.dev`.)
+3. `backend/.env`: `COOKIE_DOMAIN=.appteste.dev`,
+   `CORS_ORIGIN_REGEX=^http://([a-z0-9-]+\.)?appteste\.dev:3000$`
+4. `frontend/.env.local`: `NEXT_PUBLIC_API_URL=http://api.appteste.dev:8000`,
+   `NEXT_DEV_ALLOWED_ORIGINS=*.appteste.dev`
+5. Acesse `http://novaseguro.appteste.dev:3000` e
+   `http://beta.appteste.dev:3000` — cada um mostra a marca certa antes do
+   login, e o login de cada assinante só funciona no respectivo subdomínio.
+
+Isso é só para desenvolvimento local; nenhuma dessas variáveis precisa
+estar definida para rodar a aplicação normalmente em um domínio só (o
+comportamento padrão, sem nada disso configurado, é exatamente o mesmo de
+antes do multi-tenant).
+
 ## Dados de exemplo
 
-O seed cria 8 clientes fictícios, 4 seguradoras parceiras, 10 apólices com
-datas de renovação espalhadas (de 8 a 300 dias a partir de hoje), alguns
-sinistros e interações (elogios, reclamações, uso do portal) — o suficiente
-para o modelo heurístico de previsão gerar respostas diferentes por
-cliente. Veja `db/init/02_seed.sql`.
+O tenant `novaseguro` tem 8 clientes fictícios, 4 seguradoras parceiras, 10
+apólices com datas de renovação espalhadas (de 8 a 300 dias a partir de
+hoje), alguns sinistros e interações (elogios, reclamações, uso do portal)
+— o suficiente para o modelo heurístico de previsão gerar respostas
+diferentes por cliente. Veja `db/init/02_seed.sql`. O tenant `beta` tem um
+dataset bem menor (3 clientes, 2 seguradoras, 3 apólices) só para provar o
+isolamento e a identidade visual — veja `db/init/06_seed_tenant_beta.sql`.
 
 ## Ingestão de PDFs (Docling)
 

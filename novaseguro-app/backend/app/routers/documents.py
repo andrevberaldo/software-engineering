@@ -32,7 +32,7 @@ async def upload_document(
     titulo: str = Form(...),
     seguradora_id: str | None = Form(None),
     file: UploadFile = File(...),
-    _user: dict = Depends(get_current_user),
+    user: dict = Depends(get_current_user),
 ) -> DocumentOut:
     if not (file.filename or "").lower().endswith(".pdf") and file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Envie um arquivo PDF")
@@ -43,17 +43,30 @@ async def upload_document(
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Arquivo maior que 20MB")
 
+    tenant_id = user["tenant_id"]
     seguradora_id_int = int(seguradora_id) if seguradora_id else None
     disk_name = save_upload(raw, file.filename or "documento.pdf")
 
     with get_cursor() as cur:
+        seguradora_nome = None
+        if seguradora_id_int:
+            cur.execute(
+                "SELECT nome FROM seguradoras WHERE id = %(id)s AND tenant_id = %(tenant_id)s",
+                {"id": seguradora_id_int, "tenant_id": tenant_id},
+            )
+            seg = cur.fetchone()
+            if seg is None:
+                raise HTTPException(status_code=400, detail="Seguradora inválida")
+            seguradora_nome = seg["nome"]
+
         cur.execute(
             """
-            INSERT INTO documentos (titulo, seguradora_id, arquivo_nome, arquivo_caminho, mime_type, tamanho_bytes)
-            VALUES (%(titulo)s, %(seguradora_id)s, %(arquivo_nome)s, %(arquivo_caminho)s, %(mime_type)s, %(tamanho_bytes)s)
+            INSERT INTO documentos (tenant_id, titulo, seguradora_id, arquivo_nome, arquivo_caminho, mime_type, tamanho_bytes)
+            VALUES (%(tenant_id)s, %(titulo)s, %(seguradora_id)s, %(arquivo_nome)s, %(arquivo_caminho)s, %(mime_type)s, %(tamanho_bytes)s)
             RETURNING id, criado_em
             """,
             {
+                "tenant_id": tenant_id,
                 "titulo": titulo,
                 "seguradora_id": seguradora_id_int,
                 "arquivo_nome": file.filename,
@@ -66,18 +79,12 @@ async def upload_document(
         documento_id = criado["id"]
 
         try:
-            total_chunks = ingest_pdf(cur, documento_id, resolve_path(disk_name))
+            total_chunks = ingest_pdf(cur, documento_id, resolve_path(disk_name), tenant_id)
         except Exception as exc:
             logger.exception("Falha ao processar PDF #%s com o Docling", documento_id)
             raise HTTPException(
                 status_code=422, detail=f"Falha ao processar o PDF com o Docling: {exc}"
             ) from exc
-
-        seguradora_nome = None
-        if seguradora_id_int:
-            cur.execute("SELECT nome FROM seguradoras WHERE id = %(id)s", {"id": seguradora_id_int})
-            seg = cur.fetchone()
-            seguradora_nome = seg["nome"] if seg else None
 
     return DocumentOut(
         id=documento_id,
@@ -93,7 +100,7 @@ async def upload_document(
 
 
 @router.get("", response_model=list[DocumentOut])
-def list_documents(_user: dict = Depends(get_current_user)) -> list[DocumentOut]:
+def list_documents(user: dict = Depends(get_current_user)) -> list[DocumentOut]:
     with get_cursor() as cur:
         cur.execute(
             """
@@ -101,11 +108,13 @@ def list_documents(_user: dict = Depends(get_current_user)) -> list[DocumentOut]
                    d.arquivo_nome, d.mime_type, d.tamanho_bytes, d.criado_em,
                    COUNT(c.id) AS total_chunks
             FROM documentos d
-            LEFT JOIN seguradoras s ON s.id = d.seguradora_id
-            LEFT JOIN documento_chunks c ON c.documento_id = d.id
+            LEFT JOIN seguradoras s ON s.id = d.seguradora_id AND s.tenant_id = d.tenant_id
+            LEFT JOIN documento_chunks c ON c.documento_id = d.id AND c.tenant_id = d.tenant_id
+            WHERE d.tenant_id = %(tenant_id)s
             GROUP BY d.id, s.nome
             ORDER BY d.criado_em DESC
-            """
+            """,
+            {"tenant_id": user["tenant_id"]},
         )
         rows = cur.fetchall()
 
@@ -126,11 +135,14 @@ def list_documents(_user: dict = Depends(get_current_user)) -> list[DocumentOut]
 
 
 @router.get("/{documento_id}/download")
-def download_document(documento_id: int, _user: dict = Depends(get_current_user)):
+def download_document(documento_id: int, user: dict = Depends(get_current_user)):
     with get_cursor() as cur:
         cur.execute(
-            "SELECT arquivo_nome, arquivo_caminho, mime_type FROM documentos WHERE id = %(id)s",
-            {"id": documento_id},
+            """
+            SELECT arquivo_nome, arquivo_caminho, mime_type FROM documentos
+            WHERE id = %(id)s AND tenant_id = %(tenant_id)s
+            """,
+            {"id": documento_id, "tenant_id": user["tenant_id"]},
         )
         row = cur.fetchone()
 

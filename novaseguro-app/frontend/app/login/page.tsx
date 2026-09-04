@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -11,6 +11,14 @@ import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
+import { getBrowserHost } from "@/lib/tenant";
+
+interface Branding {
+  slug: string;
+  nomeEmpresa: string;
+  headerColor: string;
+  hasLogo: boolean;
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -21,6 +29,14 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [branding, setBranding] = useState<Branding | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/public/branding?host=${encodeURIComponent(getBrowserHost())}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setBranding)
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,12 +44,15 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        `${API_URL}/auth/login?host=${encodeURIComponent(getBrowserHost())}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -57,13 +76,21 @@ function LoginForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "primary.main",
+        bgcolor: branding?.headerColor ?? "primary.main",
         p: 2,
       }}
     >
       <Paper sx={{ p: 4, width: "100%", maxWidth: 400, borderRadius: 3 }}>
+        {branding?.hasLogo && (
+          <Box
+            component="img"
+            src={`${API_URL}/public/tenants/${branding.slug}/logo`}
+            alt={branding.nomeEmpresa}
+            sx={{ height: 40, maxWidth: "100%", objectFit: "contain", mb: 1.5 }}
+          />
+        )}
         <Typography variant="h5" sx={{ mb: 0.5, fontWeight: 700 }}>
-          NovaSeguro Copiloto
+          {branding?.nomeEmpresa ?? "NovaSeguro"} Copiloto
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Entre com sua conta para acessar a ferramenta.

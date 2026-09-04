@@ -51,6 +51,10 @@ const theme = createTheme({
     },
     MuiAppBar: {
       styleOverrides: {
+        // Cor de fallback, usada só até a marca do tenant carregar (ou se
+        // ele não tiver nenhuma) — PublicNav, AppShell e a tela de login
+        // sobrescrevem via `sx={{ bgcolor: tenant.headerColor }}`, que tem
+        // prioridade sobre este styleOverrides.
         root: {
           backgroundColor: "#1E2761",
         },

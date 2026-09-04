@@ -31,7 +31,7 @@ export default function ChatPage() {
     {
       role: "assistant",
       content:
-        "Olá! Sou o copiloto de IA da NovaSeguro. Posso consultar clientes e apólices, " +
+        "Olá! Sou o copiloto de IA da corretora. Posso consultar clientes e apólices, " +
         "explicar coberturas, prever renovação e registrar contatos de renovação. Como posso ajudar?",
     },
   ]);
@@ -78,7 +78,7 @@ export default function ChatPage() {
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Converse em linguagem natural — as respostas usam dados reais da base
-        da NovaSeguro.
+        da carteira.
       </Typography>
 
       <Paper

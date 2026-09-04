@@ -5,11 +5,12 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 
 from ..config import get_settings
-from .tools import ALL_TOOLS
+from ..db import get_cursor
+from .tools import build_tools
 
-SYSTEM_PROMPT = """\
-Você é o assistente de IA da NovaSeguro Corretora, uma corretora de seguros \
-fictícia que trabalha com várias seguradoras parceiras.
+SYSTEM_PROMPT_TEMPLATE = """\
+Você é o assistente de IA da {nome_empresa}, uma corretora de seguros \
+que trabalha com várias seguradoras parceiras.
 
 Seu trabalho é ajudar corretores humanos a:
 - consultar informações de clientes, apólices e seguradoras;
@@ -44,19 +45,30 @@ def _build_model() -> ChatOpenAI:
     )
 
 
-@lru_cache
-def get_agent():
-    """Cria (uma única vez por processo) o deep agent com suas ferramentas.
+def _nome_empresa(tenant_id: int) -> str:
+    with get_cursor() as cur:
+        cur.execute("SELECT nome_empresa FROM tenants WHERE id = %(id)s", {"id": tenant_id})
+        tenant = cur.fetchone()
+    return tenant["nome_empresa"] if tenant else "sua corretora"
 
-    O checkpointer em memória mantém o histórico de cada conversa (por
-    thread_id) apenas enquanto o processo do backend estiver de pé — em uma
-    evolução futura, pode ser trocado por um checkpointer Postgres para
-    persistir entre reinícios.
+
+@lru_cache
+def get_agent(tenant_id: int):
+    """Cria (uma única vez por tenant, por processo) o deep agent com
+    ferramentas escopadas àquele tenant (`build_tools(tenant_id)`).
+
+    Uma entrada de cache por tenant também dá isolamento de conversa de
+    graça: cada tenant tem seu próprio `InMemorySaver`, então o histórico
+    de chat de um assinante nunca aparece pra outro. Esse checkpointer em
+    memória dura só enquanto o processo do backend estiver de pé — numa
+    evolução futura, pode virar um checkpointer Postgres para persistir
+    entre reinícios.
     """
     model = _build_model()
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(nome_empresa=_nome_empresa(tenant_id))
     return create_deep_agent(
         model=model,
-        tools=ALL_TOOLS,
-        system_prompt=SYSTEM_PROMPT,
+        tools=build_tools(tenant_id),
+        system_prompt=system_prompt,
         checkpointer=InMemorySaver(),
     )

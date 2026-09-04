@@ -14,6 +14,19 @@ import Stack from "@mui/material/Stack";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
 
+interface CurrentUser {
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface CurrentTenant {
+  slug: string;
+  nomeEmpresa: string;
+  headerColor: string;
+  hasLogo: boolean;
+}
+
 const NAV_ITEMS = [
   { label: "Painel", href: "/dashboard" },
   { label: "Assistente de IA", href: "/chat" },
@@ -21,16 +34,21 @@ const NAV_ITEMS = [
   { label: "Documentos", href: "/documentos" },
 ];
 
+const ADMIN_NAV_ITEM = { label: "Configurações", href: "/configuracoes/identidade-visual" };
+
 export default function AppShell({
   user,
+  tenant,
   children,
 }: {
-  user: { name: string; email: string } | null;
+  user: CurrentUser | null;
+  tenant: CurrentTenant | null;
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const currentTab = NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ?? false;
+  const navItems = user?.role === "admin" ? [...NAV_ITEMS, ADMIN_NAV_ITEM] : NAV_ITEMS;
+  const currentTab = navItems.find((item) => pathname.startsWith(item.href))?.href ?? false;
 
   async function handleLogout() {
     await fetch(`${API_URL}/auth/logout`, {
@@ -43,16 +61,26 @@ export default function AppShell({
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AppBar position="static" elevation={0}>
+      <AppBar position="static" elevation={0} sx={tenant ? { bgcolor: tenant.headerColor } : undefined}>
         <Toolbar sx={{ maxWidth: 1200, width: "100%", mx: "auto" }}>
-          <Typography
+          <Box
             component={Link}
             href="/dashboard"
-            variant="h6"
-            sx={{ fontWeight: 800, color: "inherit", textDecoration: "none", mr: 4 }}
+            sx={{ display: "flex", alignItems: "center", mr: 4, textDecoration: "none", color: "inherit" }}
           >
-            NovaSeguro
-          </Typography>
+            {tenant?.hasLogo ? (
+              <Box
+                component="img"
+                src={`${API_URL}/public/tenants/${tenant.slug}/logo`}
+                alt={tenant.nomeEmpresa}
+                sx={{ height: 32, maxWidth: 160, objectFit: "contain" }}
+              />
+            ) : (
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                {tenant?.nomeEmpresa ?? "NovaSeguro"}
+              </Typography>
+            )}
+          </Box>
 
           <Tabs
             value={currentTab}
@@ -62,7 +90,7 @@ export default function AppShell({
               "& .MuiTabs-indicator": { backgroundColor: "secondary.main" },
             }}
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <Tab
                 key={item.href}
                 label={item.label}

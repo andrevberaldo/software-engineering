@@ -27,3 +27,14 @@ def save_upload(file_bytes: bytes, original_filename: str) -> str:
 
 def resolve_path(disk_name: str) -> Path:
     return _storage_root() / disk_name
+
+
+def save_named_file(file_bytes: bytes, relative_path: str) -> str:
+    """Grava um arquivo num caminho relativo fixo, sobrescrevendo se já
+    existir. Diferente de save_upload (nome aleatório por upload), serve
+    para arquivos que precisam de uma URL estável — ex.: o logotipo de um
+    tenant, sempre em `tenants/{tenant_id}/logo.svg`."""
+    path = _storage_root() / relative_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(file_bytes)
+    return relative_path

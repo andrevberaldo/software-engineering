@@ -55,7 +55,7 @@ export default function DashboardPage() {
         Painel da carteira
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Indicadores de uso, receita e renovação da NovaSeguro — os mesmos grupos
+        Indicadores de uso, receita e renovação da carteira — os mesmos grupos
         de métricas discutidos na apresentação.
       </Typography>
 

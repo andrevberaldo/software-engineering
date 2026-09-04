@@ -10,5 +10,6 @@ psycopg[binary]==3.3.5
 psycopg_pool==3.3.1
 pgvector==0.5.0
 python-jose[cryptography]==3.5.0
+bcrypt==4.2.1
 python-multipart==0.0.32
 docling==2.125.0

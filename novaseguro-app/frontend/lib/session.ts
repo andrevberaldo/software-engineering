@@ -12,9 +12,10 @@ const secret = new TextEncoder().encode(
 );
 
 /**
- * Verifica a assinatura do JWT emitido pelo BFF no login. O frontend nunca
- * assina/emite esse token, apenas confia nele (mesmo segredo compartilhado
- * via JWT_SECRET) para decidir se uma página protegida pode ser exibida.
+ * Verifica a assinatura do JWT emitido pelo backend no login. O frontend
+ * nunca assina/emite esse token, apenas confia nele (mesmo segredo
+ * compartilhado via JWT_SECRET) para decidir se uma página protegida pode
+ * ser exibida.
  */
 export async function verifySessionToken(token: string): Promise<SessionUser | null> {
   try {

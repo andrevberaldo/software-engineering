@@ -10,7 +10,7 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import Link from "next/link";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 function LoginForm() {
   const router = useRouter();
@@ -28,7 +28,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${BFF_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -37,7 +37,7 @@ function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "Não foi possível entrar");
+        setError(data.detail || "Não foi possível entrar");
         return;
       }
 

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import AppShell from "@/components/AppShell";
-import { BFF_URL, SESSION_COOKIE_NAME } from "@/lib/config";
+import { API_URL, SESSION_COOKIE_NAME } from "@/lib/config";
 
 async function fetchCurrentUser() {
   const cookieStore = await cookies();
@@ -8,7 +8,7 @@ async function fetchCurrentUser() {
   if (!token) return null;
 
   try {
-    const res = await fetch(`${BFF_URL}/api/auth/me`, {
+    const res = await fetch(`${API_URL}/auth/me`, {
       headers: { Cookie: `${SESSION_COOKIE_NAME}=${token}` },
       cache: "no-store",
     });

@@ -12,7 +12,7 @@ import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
 import Stack from "@mui/material/Stack";
 import Link from "next/link";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 const NAV_ITEMS = [
   { label: "Painel", href: "/dashboard" },
@@ -33,7 +33,7 @@ export default function AppShell({
   const currentTab = NAV_ITEMS.find((item) => pathname.startsWith(item.href))?.href ?? false;
 
   async function handleLogout() {
-    await fetch(`${BFF_URL}/api/auth/logout`, {
+    await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });

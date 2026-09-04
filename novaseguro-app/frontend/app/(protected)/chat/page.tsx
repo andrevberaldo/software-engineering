@@ -12,7 +12,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import PersonIcon from "@mui/icons-material/Person";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 interface Message {
   role: "user" | "assistant";
@@ -50,7 +50,7 @@ export default function ChatPage() {
     setError(null);
 
     try {
-      const res = await fetch(`${BFF_URL}/api/agent/chat`, {
+      const res = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -59,7 +59,7 @@ export default function ChatPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Não foi possível falar com o assistente");
+        setError(data.detail || "Não foi possível falar com o assistente");
         return;
       }
 

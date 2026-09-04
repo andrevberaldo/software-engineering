@@ -19,7 +19,7 @@ import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DownloadIcon from "@mui/icons-material/Download";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 interface Documento {
   id: number;
@@ -56,7 +56,7 @@ export default function DocumentosPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   function loadDocumentos() {
-    fetch(`${BFF_URL}/api/documents`, { credentials: "include" })
+    fetch(`${API_URL}/documents`, { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) throw new Error("Falha ao carregar documentos");
         return res.json();
@@ -67,7 +67,7 @@ export default function DocumentosPage() {
 
   useEffect(() => {
     loadDocumentos();
-    fetch(`${BFF_URL}/api/data/seguradoras`, { credentials: "include" })
+    fetch(`${API_URL}/data/seguradoras`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setSeguradoras(data.seguradoras || []))
       .catch(() => {});
@@ -90,7 +90,7 @@ export default function DocumentosPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${BFF_URL}/api/documents/upload`, {
+      const res = await fetch(`${API_URL}/documents/upload`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -98,7 +98,7 @@ export default function DocumentosPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Falha ao enviar o documento");
+        setError(data.detail || "Falha ao enviar o documento");
         return;
       }
 
@@ -213,7 +213,7 @@ export default function DocumentosPage() {
                     <Button
                       size="small"
                       startIcon={<DownloadIcon />}
-                      href={`${BFF_URL}/api/documents/${d.id}/download`}
+                      href={`${API_URL}/documents/${d.id}/download`}
                     >
                       Baixar
                     </Button>

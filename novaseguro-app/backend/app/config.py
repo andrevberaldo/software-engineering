@@ -14,13 +14,17 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
 
-    # Deve ser o MESMO segredo usado pelo BFF para assinar o cookie de sessão,
-    # já que o backend confia no token repassado pelo BFF em vez de refazer o
-    # login por conta própria.
+    # Deve ser o MESMO segredo usado pelo frontend (proxy.ts) para validar o
+    # cookie de sessão — o backend assina o JWT no login e o frontend só
+    # confere a assinatura para decidir se libera as páginas protegidas.
     jwt_secret: str = "change-me-in-every-environment"
     jwt_algorithm: str = "HS256"
+    jwt_expires_minutes: int = 60 * 24 * 7  # 7 dias
 
-    cors_origins: str = "http://localhost:4000"
+    cookie_name: str = "ns_session"
+    cookie_secure: bool = False
+
+    cors_origins: str = "http://localhost:3000"
 
     # Diretório onde os PDFs enviados ficam guardados para download. Em
     # produção (docker-compose) isso é um volume nomeado; localmente, uma

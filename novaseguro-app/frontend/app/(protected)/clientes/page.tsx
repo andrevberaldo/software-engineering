@@ -18,7 +18,7 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 interface Apolice {
   id: number;
@@ -168,7 +168,7 @@ export default function ClientesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${BFF_URL}/api/data/clientes`, { credentials: "include" })
+    fetch(`${API_URL}/data/clientes`, { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) throw new Error("Falha ao carregar clientes");
         return res.json();

@@ -12,7 +12,6 @@ __pycache__/
 .env
 .env.local
 backend/.env
-bff/.env
 frontend/.env.local
 
 # Armazenamento local de PDFs (fora do Docker, sem volume)

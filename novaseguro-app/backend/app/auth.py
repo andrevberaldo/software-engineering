@@ -1,30 +1,49 @@
-from fastapi import Header, HTTPException, status
+from datetime import datetime, timedelta, timezone
+
+import bcrypt
+from fastapi import HTTPException, Request, status
 from jose import JWTError, jwt
 
 from .config import get_settings
 
 
-def get_current_user(authorization: str | None = Header(default=None)) -> dict:
-    """Valida o JWT repassado pelo BFF no header Authorization: Bearer <token>.
+def verify_password(password: str, password_hash: str) -> bool:
+    return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
-    O backend não faz login por conta própria — ele confia no token que o
-    BFF já validou/emitiu, verificando apenas a assinatura com o mesmo
-    segredo compartilhado (JWT_SECRET).
+
+def create_access_token(user: dict) -> str:
+    """Assina o JWT de sessão no login, com o mesmo formato de claims que o
+    frontend (lib/session.ts) espera ao verificar o cookie.
     """
-    if not authorization or not authorization.startswith("Bearer "):
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    claims = {
+        "sub": str(user["id"]),
+        "email": user["email"],
+        "name": user["name"],
+        "role": user["role"],
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.jwt_expires_minutes),
+    }
+    return jwt.encode(claims, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def get_current_user(request: Request) -> dict:
+    """Valida o JWT enviado no cookie de sessão (emitido em /auth/login)."""
+    settings = get_settings()
+    token = request.cookies.get(settings.cookie_name)
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de autenticação ausente",
+            detail="Não autenticado",
         )
 
-    token = authorization.removeprefix("Bearer ").strip()
-    settings = get_settings()
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except JWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de autenticação inválido",
+            detail="Sessão inválida ou expirada",
         ) from exc
 
     return payload

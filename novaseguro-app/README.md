@@ -9,25 +9,31 @@ cancelamento, e antecipação automatizada de renovação.
 ## Arquitetura
 
 ```
-┌─────────────┐      ┌──────────────┐      ┌────────────────────┐      ┌──────────────┐
-│  Next.js +  │ ───▶ │  BFF (Node/  │ ───▶ │  Backend Python     │ ───▶ │   OpenAI     │
-│  MUI (3000) │ ◀─── │  Express) —  │ ◀─── │  (FastAPI) — deep   │ ◀─── │   (LLM)      │
-│             │      │  4000        │      │  agent, 8000        │      │              │
-└─────────────┘      └──────┬───────┘      └──────────┬─────────┘      └──────────────┘
-                             │                          │
-                             ▼                          ▼
-                      ┌────────────────────────────────────┐
-                      │   Postgres + pgvector (5432)        │
-                      │   users, clientes, apólices,        │
-                      │   documentos + documento_chunks     │
-                      └────────────────────────────────────┘
-                                       │
-                                       ▼
-                      ┌────────────────────────────────────┐
-                      │  Volume "documentos_data" (backend) │
-                      │  PDFs originais, para download      │
-                      └────────────────────────────────────┘
+┌─────────────┐                          ┌────────────────────┐      ┌──────────────┐
+│  Next.js +  │ ───────────────────────▶ │  Backend Python     │ ───▶ │   OpenAI     │
+│  MUI (3000) │ ◀─────────────────────── │  (FastAPI) — auth,  │ ◀─── │   (LLM)      │
+│             │                          │  dados, deep agent, │      │              │
+└─────────────┘                          │  8000               │      └──────────────┘
+                                          └──────────┬──────────┘
+                                                      │
+                                                      ▼
+                                   ┌────────────────────────────────────┐
+                                   │   Postgres + pgvector (5432)        │
+                                   │   users, clientes, apólices,        │
+                                   │   documentos + documento_chunks     │
+                                   └────────────────────────────────────┘
+                                                      │
+                                                      ▼
+                                   ┌────────────────────────────────────┐
+                                   │  Volume "documentos_data" (backend) │
+                                   │  PDFs originais, para download      │
+                                   └────────────────────────────────────┘
 ```
+
+Não existe um BFF separado: o frontend fala diretamente com o backend
+Python, que concentra autenticação, dados de negócio e o agente de IA — um
+único serviço a mais, sem hop de rede nem lógica duplicada entre duas
+linguagens (veja a justificativa dessa escolha no fim desta seção).
 
 - **frontend/** — Next.js (App Router) + Material UI. Página inicial pública
   com apresentação da ferramenta e botão "Entrar"; páginas `/dashboard`,
@@ -37,21 +43,38 @@ cancelamento, e antecipação automatizada de renovação.
   assegurado e, ao expandir a linha, o valor e a descrição do patrimônio
   de cada apólice (o carro, o imóvel, os equipamentos da empresa), além das
   datas de início e de renovação.
-- **bff/** — Node.js/Express. Único serviço que fala com o Postgres para
-  autenticação e dados simples; emite o cookie de sessão (JWT) e repassa
-  esse mesmo token como Bearer para o backend de IA. Também repassa (via
-  streaming, sem carregar o arquivo inteiro em memória) o upload e o
-  download de PDFs para o backend.
-- **backend/** — Python/FastAPI expondo um *deep agent* (biblioteca
+- **backend/** — Python/FastAPI. Além do *deep agent* (biblioteca
   [`deepagents`](https://pypi.org/project/deepagents/), construída sobre
   LangChain/LangGraph) com ferramentas de RAG (pgvector), consulta
   relacional de clientes/apólices, previsão heurística de renovação e
-  registro de contatos automáticos de renovação. Usa a OpenAI como LLM.
-  Também expõe `/documents/*` para ingestão de PDFs com
-  [Docling](https://github.com/docling-project/docling) (veja a seção
-  dedicada abaixo).
+  registro de contatos automáticos de renovação, o backend também cuida de:
+  - **Autenticação** (`/auth/login`, `/auth/logout`, `/auth/me`): confere a
+    senha com bcrypt contra a tabela `users` e emite o cookie de sessão
+    (JWT, `httpOnly`) que o `proxy.ts` do Next.js e as próprias rotas do
+    backend usam para proteger o que precisa de login.
+  - **Dados de negócio** (`/data/dashboard`, `/data/clientes`,
+    `/data/seguradoras`): consultas diretas ao Postgres para os
+    indicadores e a carteira de clientes exibidos no frontend.
+  - **Ingestão de PDFs** (`/documents/*`) com
+    [Docling](https://github.com/docling-project/docling) (veja a seção
+    dedicada abaixo).
 - **db/** — schema SQL, seed de dados fictícios e script para gerar os
   embeddings da base de conhecimento.
+
+### Por que não tem um BFF?
+
+A primeira versão desta aplicação tinha um BFF em Node/Express entre o
+frontend e o backend de IA. Na prática, ele só fazia três coisas: login
+(bcrypt + emissão de JWT em cookie), três consultas simples ao Postgres
+(dashboard, clientes, seguradoras) e um proxy de streaming para upload/
+download de PDF — nenhuma delas exclusiva de Node, e o backend Python já
+mantém sua própria conexão com o banco. Com um único frontend e um único
+backend de IA, esse hop extra só somava latência e mais um serviço para
+subir/monitorar sem ganho real, então essas três responsabilidades foram
+absorvidas pelo FastAPI e o BFF foi removido. Reintroduzir um BFF voltaria
+a valer a pena se surgisse mais de um cliente (app mobile, painel interno)
+consumindo backends diferentes, ou se quiséssemos manter o serviço de IA
+livre de qualquer preocupação de sessão web.
 
 ## Login padrão
 
@@ -61,10 +84,10 @@ Usuário administrador semeado no banco:
 - **Senha:** `admin`
 
 Apenas usuários autenticados acessam `/dashboard`, `/chat`, `/clientes` e
-`/documentos` —
-isso é garantido tanto pelo `proxy.ts` do Next.js (que verifica o JWT antes
-de renderizar a página) quanto pelo middleware `requireAuth` do BFF (que
-protege as rotas de API).
+`/documentos` — isso é garantido tanto pelo `proxy.ts` do Next.js (que
+verifica o JWT antes de renderizar a página) quanto pela dependência
+`get_current_user` do backend (que protege as rotas da API lendo o mesmo
+cookie de sessão).
 
 ## Rodando com Docker Compose
 
@@ -76,9 +99,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Serviços: frontend em `http://localhost:3000`, BFF em `:4000`, backend em
-`:8000`, Postgres em `:5432`. O schema e o seed de dados fictícios rodam
-automaticamente na primeira subida do Postgres (via `db/init/*.sql`).
+Serviços: frontend em `http://localhost:3000`, backend em `:8000`, Postgres
+em `:5432`. O schema e o seed de dados fictícios rodam automaticamente na
+primeira subida do Postgres (via `db/init/*.sql`).
 
 Para gerar os embeddings pendentes (dos textos do seed e de qualquer PDF
 enviado antes de configurar a chave), rode o script dentro do próprio
@@ -93,7 +116,7 @@ docker compose exec -e OPENAI_API_KEY=sk-... backend python db/seed_embeddings.p
 
 ## Rodando localmente sem Docker
 
-Requer Postgres 16+ com a extensão `pgvector` instalada, Node.js 20+ e
+Requer Postgres 16+ com a extensão `pgvector` instalada e Node.js 20+ e
 Python 3.11+.
 
 ```bash
@@ -102,6 +125,7 @@ createdb novaseguro
 psql -d novaseguro -f db/init/01_schema.sql
 psql -d novaseguro -f db/init/02_seed.sql
 psql -d novaseguro -f db/init/03_documentos_chunks.sql
+psql -d novaseguro -f db/init/04_patrimonio_apolices.sql
 
 # 2. Backend (Python)
 cd backend
@@ -110,19 +134,13 @@ pip install -r requirements.txt
 cp .env.example .env   # preencha DATABASE_URL, OPENAI_API_KEY, JWT_SECRET
 uvicorn app.main:app --reload --port 8000
 
-# 3. BFF (Node.js) — em outro terminal
-cd bff
-npm install
-cp .env.example .env   # mesmo JWT_SECRET do backend
-npm run dev
-
-# 4. Frontend (Next.js) — em outro terminal
+# 3. Frontend (Next.js) — em outro terminal
 cd frontend
 npm install
-cp .env.example .env.local   # mesmo JWT_SECRET
+cp .env.example .env.local   # mesmo JWT_SECRET do backend
 npm run dev
 
-# 5. (opcional) Embeddings para a busca RAG
+# 4. (opcional) Embeddings para a busca RAG
 cd backend && source .venv/bin/activate
 OPENAI_API_KEY=sk-... python3 ../db/seed_embeddings.py
 ```
@@ -157,13 +175,13 @@ assistente:
    nome/caminho do arquivo, tamanho) — é o que alimenta o botão "Baixar" na
    tela e o endpoint `GET /documents/{id}/download`.
 
-Endpoints (todos exigem sessão autenticada, repassada pelo BFF):
+Endpoints (todos exigem o cookie de sessão emitido em `/auth/login`):
 
-| Rota (backend) | Via BFF | O que faz |
-|---|---|---|
-| `POST /documents/upload` | `POST /api/documents/upload` | multipart (`titulo`, `seguradora_id` opcional, `file`); processa e responde com o total de chunks gerados |
-| `GET /documents` | `GET /api/documents` | lista documentos + contagem de chunks |
-| `GET /documents/{id}/download` | `GET /api/documents/{id}/download` | stream do PDF original |
+| Rota | O que faz |
+|---|---|
+| `POST /documents/upload` | multipart (`titulo`, `seguradora_id` opcional, `file`); processa e responde com o total de chunks gerados |
+| `GET /documents` | lista documentos + contagem de chunks |
+| `GET /documents/{id}/download` | download do PDF original |
 
 **Sobre o modelo de layout do Docling:** na primeira conversão de um PDF,
 o Docling baixa um modelo de análise de layout do Hugging Face Hub (fica

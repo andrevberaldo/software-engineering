@@ -8,7 +8,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Link from "next/link";
-import { BFF_URL } from "@/lib/config";
+import { API_URL } from "@/lib/config";
 
 interface DashboardSummary {
   totalClientes: number;
@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${BFF_URL}/api/data/dashboard`, { credentials: "include" })
+    fetch(`${API_URL}/data/dashboard`, { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) throw new Error("Falha ao carregar indicadores");
         return res.json();
